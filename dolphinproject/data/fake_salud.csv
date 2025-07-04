@@ -1,0 +1,6 @@
+fecha,estado,municipio,enfermedad,sexo,edad,casos
+2023-01-01,Tabasco,Balancán,Infección respiratoria aguda,Hombre,25,2
+2023-01-01,Tabasco,Balancán,Asma,Mujer,40,1
+2023-02-01,Tabasco,Tenosique,Infección respiratoria aguda,Mujer,33,5
+2023-03-01,Chiapas,Palenque,Asma,Hombre,28,3
+2023-03-01,Chiapas,Ocosingo,Neumonía,Mujer,60,4
