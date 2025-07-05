@@ -1,33 +1,25 @@
-from flask import Flask, jsonify, request
-import pandas as pd
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
+import json
 
+# ✅ Primero defines la app
 app = Flask(__name__)
 CORS(app)
 
-# Cargar datos simulados
-df = pd.read_csv('data/fake_salud.csv')
+# ✅ Luego defines los datos
+with open('datos.json') as f:
+    datos = json.load(f)
 
-@app.route('/')
-def inicio():
-    return 'API de salud funcionando'
+# ✅ Ahora sí, tus rutas
+@app.route("/api/datos")
+def get_datos():
+    alcaldia = request.args.get("alcaldia")
+    result = next((d for d in datos if d["NOM_MUN"] == alcaldia), None)
+    return jsonify(result if result else {"valor": "Sin datos"})
 
-@app.route('/api/casos', methods=['GET'])
-def filtrar_datos():
-    enfermedad = request.args.get('enfermedad')
-    estado = request.args.get('estado')
-    anio = request.args.get('anio')
+@app.route("/alcaldias.geojson")
+def get_geojson():
+    return send_from_directory('.', 'CDMX_mpal.geojson')
 
-    filtrado = df.copy()
-
-    if enfermedad:
-        filtrado = filtrado[filtrado['enfermedad'] == enfermedad]
-    if estado:
-        filtrado = filtrado[filtrado['estado'] == estado]
-    if anio:
-        filtrado = filtrado[filtrado['fecha'].str.startswith(anio)]
-
-    return jsonify(filtrado.to_dict(orient='records'))
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run(debug=True)
