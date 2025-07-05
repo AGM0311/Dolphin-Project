@@ -1,0 +1,16 @@
+.plantilla-container {
+  display: flex !important;
+  min-height: 100vh !important;
+  background-color: rgb(0, 123, 255) !important; /* Cambia el color para ver si aplica */
+}
+
+.sidebar {
+  width: 150px !important;
+  background-color: rgb(46, 71, 182) !important; /* Visible */
+}
+
+.main-content {
+  flex: 1 !important;
+  padding: 10px !important;
+  background-color: rgb(144, 203, 238) !important; /* Visible */
+}

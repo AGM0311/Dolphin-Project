@@ -1,18 +1,17 @@
 import React from 'react';
 import { Menu } from '../components/inicio';
+import './Plantilla.css'; // Archivo CSS para los estilos
 
 export function Plantilla({ children }) {
   return (
-    <div style={{ backgroundColor: 'green', minHeight: '100vh' }}>
-      {/* Menú lateral */}
-      <div className='header'>
+    <div className="plantilla-container">
+      <div className="sidebar">
         <Menu />
       </div>
 
-      {/* Contenido principal con margen izquierdo */}
-      <div className='body' style={{ marginLeft: '150px', padding: '10px' }}>
+      <main className="main-content">
         {children}
-      </div>
+      </main>
     </div>
   );
 }
