@@ -1,5 +1,18 @@
 [
-  {"NOM_MUN": "Azcapotzalco", "valor": 123},
-  {"NOM_MUN": "Iztapalapa", "valor": 456},
-  {"NOM_MUN": "Benito Juárez", "valor": 789}
+  {
+    "NOM_MUN": "Benito Juarez",
+    "enfermedades": {
+      "diabetes": 42,
+      "hipertension": 30,
+      "asma": 15
+    }
+  },
+  {
+    "NOM_MUN": "Coyoacan",
+    "enfermedades": {
+      "diabetes": 35,
+      "hipertension": 25,
+      "asma": 20
+    }
+  }
 ]
