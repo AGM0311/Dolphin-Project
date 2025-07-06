@@ -6,33 +6,9 @@ import unicodedata
 app = Flask(__name__)
 CORS(app)
 
-# Datos inventados con alcaldías y enfermedades
-datos = [
-    {
-        "NOM_MUN": "Benito Juárez",
-        "enfermedades": {
-            "diabetes": 42,
-            "hipertension": 30,
-            "asma": 15
-        }
-    },
-    {
-        "NOM_MUN": "Coyoacán",
-        "enfermedades": {
-            "diabetes": 35,
-            "hipertension": 25,
-            "asma": 20
-        }
-    },
-    {
-        "NOM_MUN": "Iztapalapa",
-        "enfermedades": {
-            "diabetes": 50,
-            "hipertension": 40,
-            "asma": 22
-        }
-    }
-]
+# Cargar datos desde el archivo JSON al iniciar la app
+with open('datos.json', encoding='utf-8') as f:
+    datos = json.load(f)
 
 def normalize_text(text):
     return ''.join(
@@ -44,7 +20,7 @@ def normalize_text(text):
 def get_datos():
     alcaldia = request.args.get("alcaldia", "")
     alcaldia_norm = normalize_text(alcaldia)
-    
+
     result = next(
         (d for d in datos if normalize_text(d["NOM_MUN"]) == alcaldia_norm),
         None
@@ -53,9 +29,6 @@ def get_datos():
         return jsonify(result)
     else:
         return jsonify({"valor": "Sin datos"})
-
-if __name__ == "__main__":
-    app.run(debug=True, port=5000)
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
