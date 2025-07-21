@@ -2,25 +2,34 @@
   {
     "NOM_MUN": "Benito Juárez",
     "enfermedades": {
-      "diabetes": 42,
-      "hipertension": 30,
-      "asma": 15
+      "tuberculosis": 42,
+      "vih": 15,
+      "cancer": 30,
+      "muertes": 5,
+      "edad_promedio": 45,
+      "sexo_mas_afectado": "masculino"
     }
   },
   {
     "NOM_MUN": "Coyoacán",
     "enfermedades": {
-      "diabetes": 35,
-      "hipertension": 25,
-      "asma": 20
+      "tuberculosis": 20,
+      "vih": 25,
+      "cancer": 10,
+      "muertes": 3,
+      "edad_promedio": 50,
+      "sexo_mas_afectado": "femenino"
     }
   },
   {
     "NOM_MUN": "Iztapalapa",
     "enfermedades": {
-      "diabetes": 50,
-      "hipertension": 40,
-      "asma": 22
+      "tuberculosis": 55,
+      "vih": 35,
+      "cancer": 40,
+      "muertes": 8,
+      "edad_promedio": 48,
+      "sexo_mas_afectado": "masculino"
     }
   }
 ]

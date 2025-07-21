@@ -6,7 +6,6 @@ import unicodedata
 app = Flask(__name__)
 CORS(app)
 
-# Cargar datos desde el archivo JSON al iniciar la app
 with open('datos.json', encoding='utf-8') as f:
     datos = json.load(f)
 
@@ -25,10 +24,12 @@ def get_datos():
         (d for d in datos if normalize_text(d["NOM_MUN"]) == alcaldia_norm),
         None
     )
+
     if result:
-        return jsonify(result)
+        return jsonify({"enfermedades": result.get("enfermedades", {})})
     else:
-        return jsonify({"valor": "Sin datos"})
+        # No enviar 404, devolver estructura con mensaje y enfermedades null
+        return jsonify({"enfermedades": None, "mensaje": "Sin datos para esa alcaldía"})
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
