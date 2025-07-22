@@ -4,25 +4,24 @@ import 'leaflet/dist/leaflet.css';
 
 // Códigos alcaldías
 const alcaldiasCodigos = {
-  "Distrito Federal": 0,
   "Azcapotzalco": 2,
-  "Coyoacan": 3,
+  "Coyoacán": 3,
   "Cuajimalpa de Morelos": 4,
   "Gustavo A. Madero": 5,
   "Iztacalco": 6,
   "Iztapalapa": 7,
   "La Magdalena Contreras": 8,
   "Milpa Alta": 9,
-  "Álvaro Obregon": 10,
-  "Tlahuac": 11,
+  "Álvaro Obregón": 10,
+  "Tláhuac": 11,
   "Tlalpan": 12,
   "Xochimilco": 13,
-  "Benito Juarez": 14,
-  "Cuauhtemoc": 15,
+  "Benito Juárez": 14,
+  "Cuauhtémoc": 15,
   "Miguel Hidalgo": 16,
   "Venustiano Carranza": 17,
-  "Municipio no especificado": 999
 };
+
 
 // Nueva paleta de colores pastel
 const getColor = (nivel) => {
