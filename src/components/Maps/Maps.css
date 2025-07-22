@@ -1,100 +1,164 @@
-/* Contenedor general del mapa */
-.map-container {
+.container {
+  display: flex;
   height: 100vh;
   width: 100%;
+  position: relative;
+  overflow: hidden;
 }
 
-/* Loader global */
-.loading-global {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: rgba(255, 255, 255, 0.95);
-  padding: 20px 30px;
-  border-radius: 12px;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
-  z-index: 10000;
-  font-weight: 600;
-  color: #34495e;
+/* === MAPA === */
+.mapContainer {
+  flex: 1;
+  height: 100%;
+  border-top-left-radius: 16px;
+  border-bottom-left-radius: 16px;
+  overflow: hidden;
+  margin: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
-/* Panel lateral */
-.sidebar-panel {
+/* === PANEL LATERAL A LA DERECHA === */
+.panelLateral {
   position: absolute;
   top: 0;
-  right: -360px;
+  right: 0;
   height: 100%;
-  width: 340px;
-  max-width: 90%;
-  background-color: #fff;
-  box-shadow: none;
-  padding: 0;
-  overflow-y: auto;
-  transition: right 0.3s ease, padding 0.3s ease;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  z-index: 9999;
+  width: 0;
+  overflow: hidden;
+  background: #f9fafb;
+  transition: width 0.3s ease;
+  box-shadow: -4px 0 12px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
+  border-top-left-radius: 16px;
+  border-bottom-left-radius: 16px;
+  z-index: 1000;
 }
 
-.sidebar-panel.open {
-  right: 0;
-  box-shadow: -3px 0 15px rgba(0, 0, 0, 0.1);
-  padding: 20px 24px;
+.panelAbierto {
+  width: 360px;
+  padding: 24px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #ccc transparent;
 }
 
-/* Botón cerrar */
-.sidebar-close-btn {
-  align-self: flex-end;
-  font-size: 24px;
+.panelAbierto::-webkit-scrollbar {
+  width: 6px;
+}
+
+.panelAbierto::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 4px;
+}
+
+/* === BOTÓN CERRAR === */
+.btnCerrar {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  background: #e5e5e5;
   border: none;
-  background: transparent;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  font-size: 20px;
+  color: #555;
   cursor: pointer;
-  color: #2e8389;
-  margin-bottom: 10px;
-  padding: 0;
-  line-height: 1;
+  transition: background 0.2s;
 }
 
-/* Título panel */
-.sidebar-panel h2 {
-  margin-top: 0;
+.btnCerrar:hover {
+  background: #ccc;
+}
+
+/* === TÍTULO === */
+.tituloMunicipio {
+  font-size: 20px;
+  font-weight: bold;
   color: #2c3e50;
-  font-weight: 700;
+  margin-bottom: 24px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #ddd;
 }
 
-/* Filtros */
-.filters {
-  margin-bottom: 15px;
+/* === FILTROS === */
+.filtrosContenedor {
+  background: #eef1f5;
+  padding: 12px 16px;
+  border-radius: 12px;
+  margin-bottom: 24px;
 }
 
-.filters strong {
-  display: block;
-  margin-bottom: 6px;
+.filtrosTitulo {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: #333;
 }
 
-.filters label {
-  display: block;
-  cursor: pointer;
-  margin-top: 6px;
-  user-select: none;
+.filtroLabel {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  margin-bottom: 8px;
+  color: #333;
 }
 
-.filters input[type="checkbox"] {
-  margin-right: 8px;
+.checkbox {
+  margin-right: 10px;
+  transform: scale(1.2);
+  accent-color: #3498db;
 }
 
-/* Lista de datos */
-.datos-list {
-  padding-left: 0;
+/* === DATOS === */
+.listaDatos {
   list-style: none;
-  color: #386189;
+  padding: 0;
+  margin: 0;
 }
 
-/* Texto de carga o sin datos */
-.loading-text,
-.no-data-text {
-  color: #224e51;
+.listaDatos li {
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+  font-size: 15px;
+  color: #444;
+}
+
+.cargandoPanel,
+.noDatos {
+  font-size: 14px;
+  color: #777;
   font-style: italic;
+  margin-top: 10px;
+}
+
+.spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid #ccc;
+  border-top-color: #3498db;
+  border-radius: 50%;
+  display: inline-block;
+  animation: spin 1s linear infinite;
+  margin-right: 6px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 768px) {
+  .panelAbierto {
+    width: 100%;
+    border-radius: 0;
+  }
+
+  .mapContainer {
+    border-radius: 0;
+    margin: 0;
+  }
 }

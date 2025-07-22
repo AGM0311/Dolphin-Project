@@ -1,43 +1,40 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { MapContainer, TileLayer, GeoJSON } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
+import './Maps.css';
 
-// Códigos alcaldías
 const alcaldiasCodigos = {
-  "Azcapotzalco": 2,
-  "Coyoacán": 3,
-  "Cuajimalpa de Morelos": 4,
-  "Gustavo A. Madero": 5,
-  "Iztacalco": 6,
-  "Iztapalapa": 7,
-  "La Magdalena Contreras": 8,
-  "Milpa Alta": 9,
-  "Álvaro Obregón": 10,
-  "Tláhuac": 11,
-  "Tlalpan": 12,
-  "Xochimilco": 13,
-  "Benito Juárez": 14,
-  "Cuauhtémoc": 15,
-  "Miguel Hidalgo": 16,
-  "Venustiano Carranza": 17,
+  Azcapotzalco: 2,
+  'Coyoacán': 3,
+  'Cuajimalpa de Morelos': 4,
+  'Gustavo A. Madero': 5,
+  Iztacalco: 6,
+  Iztapalapa: 7,
+  'La Magdalena Contreras': 8,
+  'Milpa Alta': 9,
+  'Álvaro Obregón': 10,
+  Tláhuac: 11,
+  Tlalpan: 12,
+  Xochimilco: 13,
+  'Benito Juárez': 14,
+  Cuauhtémoc: 15,
+  'Miguel Hidalgo': 16,
+  'Venustiano Carranza': 17,
 };
 
-
-// Nueva paleta de colores pastel
 const getColor = (nivel) => {
-  if (nivel == null) return '#d3d3d3';          // gris claro para sin datos
-  if (nivel > 70) return '#ff6b6b';             // rojo pastel suave
-  if (nivel > 50) return '#f7b267';             // naranja pastel
-  if (nivel > 30) return '#f9e79f';             // amarillo pastel
-  if (nivel > 10) return '#a2d5c6';             // verde menta suave
-  return '#6ab47b';                             // verde suave
+  if (nivel == null) return '#f0f0f0';
+  if (nivel > 70) return '#084594';
+  if (nivel > 50) return '#2171b5';
+  if (nivel > 30) return '#4292c6';
+  if (nivel > 10) return '#6baed6';
+  return '#9ecae1';
 };
 
-// Coordenadas y límites para CDMX
 const center = [19.4326, -99.1332];
 const bounds = [
-  [19.0, -99.5],   // suroeste
-  [20.0, -98.7],   // noreste
+  [19.0, -99.5],
+  [20.0, -98.7],
 ];
 
 const Maps = () => {
@@ -48,31 +45,32 @@ const Maps = () => {
   const [loadingGlobal, setLoadingGlobal] = useState(true);
   const [filtros, setFiltros] = useState({ tuberculosis: true, vih: true, cancer: true });
 
-  const datosRef = useRef({});
+  const datosRef = useRef(datosMunicipios);
   datosRef.current = datosMunicipios;
 
   useEffect(() => {
-    async function fetchData() {
+    const fetchData = async () => {
       try {
-        const geo = await fetch('/CDMX_mpal.geojson').then(r => r.json());
-        setGeoData(geo);
+        const geoResponse = await fetch('/CDMX_mpal.geojson');
+        const geoJson = await geoResponse.json();
+        setGeoData(geoJson);
 
-        const entries = Object.entries(alcaldiasCodigos);
         const allData = {};
+        const entries = Object.entries(alcaldiasCodigos);
 
-        await Promise.all(entries.map(async ([nombre, codigo]) => {
-          try {
-            const res = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/datos?codigo=${codigo}`);
-            if (res.ok) {
+        await Promise.all(
+          entries.map(async ([nombre, codigo]) => {
+            try {
+              const url = `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/datos?codigo=${codigo}`;
+              const res = await fetch(url);
+              if (!res.ok) throw new Error(`Error en ${nombre}`);
               const info = await res.json();
               allData[nombre] = info.enfermedades || null;
-            } else {
+            } catch {
               allData[nombre] = null;
             }
-          } catch {
-            allData[nombre] = null;
-          }
-        }));
+          })
+        );
 
         setDatosMunicipios(allData);
       } catch (error) {
@@ -80,145 +78,97 @@ const Maps = () => {
       } finally {
         setLoadingGlobal(false);
       }
-    }
+    };
+
     fetchData();
   }, []);
 
-  const styleFeature = useCallback((feature) => {
-    const nombre = feature.properties.NOM_MUN;
-    const enfermedades = datosRef.current[nombre];
+  const calcularNivel = useCallback(
+    (enfermedades) => {
+      if (!enfermedades) return null;
 
-    let nivel = null;
-    if (enfermedades) {
-      const t = filtros.tuberculosis ? enfermedades.tuberculosis || 0 : 0;
-      const v = filtros.vih ? enfermedades.vih || 0 : 0;
-      const c = filtros.cancer && enfermedades.cancer
-        ? Object.values(enfermedades.cancer).reduce((a, b) => a + b, 0)
-        : 0;
-      nivel = (t + v + c) / ( (filtros.tuberculosis + filtros.vih + filtros.cancer) || 1 );
-    }
+      const filtrosActivos = Object.entries(filtros).filter(([_, val]) => val);
+      if (filtrosActivos.length === 0) return null;
 
-    return {
-      weight: 1.5,
-      color: '#34495e',
-      fillOpacity: 0.7,
-      fillColor: getColor(nivel),
-      dashArray: '3',
-    };
-  }, [filtros]);
+      let suma = 0;
+      filtrosActivos.forEach(([key]) => {
+        if (key === 'cancer') {
+          const totalCancer = enfermedades.cancer
+            ? Object.values(enfermedades.cancer).reduce((acc, val) => acc + val, 0)
+            : 0;
+          suma += totalCancer;
+        } else {
+          suma += enfermedades[key] || 0;
+        }
+      });
 
-  const onEachFeature = useCallback((feature, layer) => {
-    const nombre = feature.properties.NOM_MUN;
-    layer.on({
-      click: () => {
-        setLoadingPanel(true);
-        setMunicipioSeleccionado({ nombre, enfermedades: null });
+      return suma / filtrosActivos.length;
+    },
+    [filtros]
+  );
 
-        setTimeout(() => {
-          const enfermedades = datosRef.current[nombre] || null;
-          setMunicipioSeleccionado({ nombre, enfermedades });
-          setLoadingPanel(false);
-        }, 200);
-      }
-    });
-  }, []);
+  const styleFeature = useCallback(
+    (feature) => {
+      const nombre = feature.properties.NOM_MUN;
+      const enfermedades = datosRef.current[nombre];
+      const nivel = calcularNivel(enfermedades);
+
+      return {
+        weight: 1.5,
+        color: '#34495e',
+        fillOpacity: 0.7,
+        fillColor: getColor(nivel),
+        dashArray: '3',
+      };
+    },
+    [calcularNivel]
+  );
+
+  const onEachFeature = useCallback(
+    (feature, layer) => {
+      const nombre = feature.properties.NOM_MUN;
+
+      layer.on({
+        click: () => {
+          setLoadingPanel(true);
+          setMunicipioSeleccionado({ nombre, enfermedades: null });
+
+          setTimeout(() => {
+            const enfermedades = datosRef.current[nombre] || null;
+            setMunicipioSeleccionado({ nombre, enfermedades });
+            setLoadingPanel(false);
+          }, 200);
+        },
+      });
+    },
+    []
+  );
 
   const toggleFiltro = (key) => {
-    setFiltros(prev => ({ ...prev, [key]: !prev[key] }));
+    setFiltros((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
   return (
-    <div style={{ position: 'relative' }}>
-      <MapContainer
-        center={center}
-        zoom={11}
-        minZoom={10}
-        maxZoom={14}
-        maxBounds={bounds}
-        maxBoundsViscosity={1.0}
-        style={{ height: '100vh', width: '100%' }}
-      >
-        <TileLayer
-          attribution='&copy; OpenStreetMap contributors'
-          url='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
-        />
-        {geoData && (
-          <GeoJSON
-            data={geoData}
-            style={styleFeature}
-            onEachFeature={onEachFeature}
-          />
-        )}
-      </MapContainer>
-
-      {loadingGlobal && (
-        <div style={{
-          position: 'absolute',
-          top: '50%', left: '50%',
-          transform: 'translate(-50%, -50%)',
-          background: 'rgba(255,255,255,0.95)',
-          padding: '20px 30px',
-          borderRadius: '12px',
-          boxShadow: '0 0 20px rgba(0,0,0,0.15)',
-          zIndex: 10000,
-          fontWeight: '600',
-          color: '#34495e'
-        }}>
-          🗺️ Cargando mapa y datos...
-        </div>
-      )}
-
-      {/* Panel lateral */}
-      <aside style={{
-        position: 'absolute',
-        top: 0,
-        right: municipioSeleccionado ? 0 : '-360px',
-        height: '100%',
-        width: '340px',
-        maxWidth: '90%',
-        backgroundColor: '#fff',
-        boxShadow: municipioSeleccionado ? '-3px 0 15px rgba(0,0,0,0.1)' : 'none',
-        padding: municipioSeleccionado ? '20px 24px' : 0,
-        overflowY: 'auto',
-        transition: 'right 0.3s ease, padding 0.3s ease',
-        fontFamily: `'Segoe UI', Tahoma, Geneva, Verdana, sans-serif`,
-        zIndex: 9999,
-        display: 'flex',
-        flexDirection: 'column',
-      }}>
+    <div className="container">
+      <aside className={`panelLateral ${municipioSeleccionado ? 'panelAbierto' : ''}`} aria-live="polite">
         {municipioSeleccionado && (
           <>
-            <button
-              onClick={() => setMunicipioSeleccionado(null)}
-              aria-label="Cerrar panel"
-              style={{
-                alignSelf: 'flex-end',
-                fontSize: '24px',
-                border: 'none',
-                background: 'transparent',
-                cursor: 'pointer',
-                color: '#7f8c8d',
-                marginBottom: '10px',
-                padding: 0,
-                lineHeight: 1,
-              }}
-            >&times;</button>
+            <button onClick={() => setMunicipioSeleccionado(null)} aria-label="Cerrar panel" className="btnCerrar">
+              &times;
+            </button>
 
-            <h2 style={{ marginTop: 0, color: '#2c3e50', fontWeight: '700' }}>
-              {municipioSeleccionado.nombre}
-            </h2>
+            <h2 className="tituloMunicipio">{municipioSeleccionado.nombre}</h2>
 
-            {/* Filtros */}
-            <div style={{ marginBottom: '15px' }}>
-              <strong>Filtros</strong>
+            <div className="filtrosContenedor">
+              <strong className="filtrosTitulo">Filtros</strong>
               <div>
-                {['tuberculosis', 'vih', 'cancer'].map(key => (
-                  <label key={key} style={{ display: 'block', cursor: 'pointer', marginTop: '6px', userSelect: 'none' }}>
+                {['tuberculosis', 'vih', 'cancer'].map((key) => (
+                  <label key={key} className="filtroLabel">
                     <input
                       type="checkbox"
                       checked={filtros[key]}
                       onChange={() => toggleFiltro(key)}
-                      style={{ marginRight: '8px' }}
+                      className="checkbox"
                     />
                     {key.charAt(0).toUpperCase() + key.slice(1)}
                   </label>
@@ -227,27 +177,57 @@ const Maps = () => {
             </div>
 
             {loadingPanel ? (
-              <p style={{ color: '#437a7eff' }}><em>Cargando datos...</em></p>
+              <p className="cargandoPanel">
+                <span className="spinner" aria-hidden="true"></span> Cargando datos...
+              </p>
             ) : municipioSeleccionado.enfermedades ? (
-              <ul style={{ paddingLeft: 0, listStyle: 'none', color: '#34495e' }}>
+              <ul className="listaDatos">
                 {filtros.tuberculosis && (
-                  <li>🦠 Tuberculosis: {municipioSeleccionado.enfermedades.tuberculosis ?? 'N/A'}</li>
+                  <li>
+                    🦠 Tuberculosis: <strong>{municipioSeleccionado.enfermedades.tuberculosis ?? 'N/A'}</strong>
+                  </li>
                 )}
                 {filtros.vih && (
-                  <li>🧬 VIH: {municipioSeleccionado.enfermedades.vih ?? 'N/A'}</li>
+                  <li>
+                    🧬 VIH: <strong>{municipioSeleccionado.enfermedades.vih ?? 'N/A'}</strong>
+                  </li>
                 )}
-                {filtros.cancer && municipioSeleccionado.enfermedades.cancer && (
+                {filtros.cancer &&
+                  municipioSeleccionado.enfermedades.cancer &&
                   Object.entries(municipioSeleccionado.enfermedades.cancer).map(([tipo, cantidad]) => (
-                    <li key={tipo}>🎗️ {tipo}: {cantidad}</li>
-                  ))
-                )}
+                    <li key={tipo}>
+                      🎗️ {tipo}: <strong>{cantidad}</strong>
+                    </li>
+                  ))}
               </ul>
             ) : (
-              <p style={{ color: '#2f52a8ff' }}><em>No hay datos disponibles</em></p>
+              <p className="noDatos">No hay datos disponibles</p>
             )}
           </>
         )}
       </aside>
+
+      <MapContainer
+        center={center}
+        zoom={11}
+        minZoom={10}
+        maxZoom={14}
+        maxBounds={bounds}
+        maxBoundsViscosity={1.0}
+        className="mapContainer"
+      >
+        <TileLayer
+          attribution="&copy; OpenStreetMap contributors"
+          url="https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png"
+        />
+        {geoData && <GeoJSON data={geoData} style={styleFeature} onEachFeature={onEachFeature} />}
+      </MapContainer>
+
+      {loadingGlobal && (
+        <div className="loadingGlobal" role="status" aria-live="polite">
+          <span role="img" aria-label="Mapa" className="loadingEmoji">🗺️</span> Cargando mapa y datos...
+        </div>
+      )}
     </div>
   );
 };
