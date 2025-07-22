@@ -3,6 +3,27 @@ import { MapContainer, TileLayer, GeoJSON, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
+const alcaldiasCodigos = {
+  "Distrito Federal": 0,
+  "Azcapotzalco": 2,
+  "Coyoacan": 3,
+  "Cuajimalpa de Morelos": 4,
+  "Gustavo A. Madero": 5,
+  "Iztacalco": 6,
+  "Iztapalapa": 7,
+  "La Magdalena Contreras": 8,
+  "Milpa Alta": 9,
+  "Álvaro Obregon": 10,
+  "Tlahuac": 11,
+  "Tlalpan": 12,
+  "Xochimilco": 13,
+  "Benito Juarez": 14,
+  "Cuauhtemoc": 15,
+  "Miguel Hidalgo": 16,
+  "Venustiano Carranza": 17,
+  "Municipio no especificado": 999
+};
+
 // Función para color del nivel (puedes ajustar esta lógica luego)
 const getColor = (nivel) => {
   return nivel > 70 ? '#e74c3c' : // rojo fuerte
@@ -100,12 +121,20 @@ const Maps = () => {
     if (!enfermedades) return `<b>${nombre}</b><br><em>No hay datos disponibles.</em>`;
 
     const items = [];
-    if (filtrosRef.current.tuberculosis && enfermedades.tuberculosis !== undefined) 
+
+    if (filtrosRef.current.tuberculosis && enfermedades.tuberculosis !== undefined) {
       items.push(`<li>${iconos.tuberculosis} <b>Tuberculosis:</b> ${enfermedades.tuberculosis}</li>`);
-    if (filtrosRef.current.vih && enfermedades.vih !== undefined) 
+    }
+
+    if (filtrosRef.current.vih && enfermedades.vih !== undefined) {
       items.push(`<li>${iconos.vih} <b>VIH:</b> ${enfermedades.vih}</li>`);
-    if (filtrosRef.current.cancer && enfermedades.cancer !== undefined) 
-      items.push(`<li>${iconos.cancer} <b>Cáncer:</b> ${enfermedades.cancer}</li>`);
+    }
+
+    if (filtrosRef.current.cancer && enfermedades.cancer) {
+      Object.entries(enfermedades.cancer).forEach(([tipo, cantidad]) => {
+        items.push(`<li>${iconos.cancer} <b>${tipo}:</b> ${cantidad}</li>`);
+      });
+    }
 
     return `
       <div style="
@@ -139,7 +168,13 @@ const Maps = () => {
         const contenido = generarContenido(nombre, enfermedades);
         layer.setPopupContent(contenido).openPopup();
       } else {
-        fetch(`http://localhost:5000/api/datos?alcaldia=${encodeURIComponent(nombre)}`)
+        const codigo = alcaldiasCodigos[nombre];
+        if (codigo === undefined) {
+          layer.setPopupContent(`<b>${nombre}</b><br><em>Código no encontrado.</em>`).openPopup();
+          return;
+        }
+
+        fetch(`http://localhost:5000/api/datos?codigo=${codigo}`)
           .then(res => {
             if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
             return res.json();
